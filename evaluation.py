@@ -1,6 +1,6 @@
 import sys, os, glob
-sys.path.append('/Users/eliasfoisner/Studium/TCH Master/LU Masterarbeit/python')
-import elias_library as el
+sys.path.append('/Users/eliasfoisner/Documents/GitHub/data-evaluation')
+import singlepulse as el
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
