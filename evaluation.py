@@ -32,7 +32,11 @@ for file in selected_files:
     isotopes = objects[f].measured_isotopes.tolist()
 
     for i in isotopes:
-        criterion, threshold = 10, 50
+        criterion, threshold = 10, 100
+        if i == "Eu":
+            criterion, threshold = 10, 150
+        if i == "EuO":
+            criterion, threshold = 10, 40
         objects[f].timescale(i, cycle_time=50e-6)
         objects[f].peak_finding(i, threshold=threshold, distance=5e-3)
         objects[f].peak_width(i, criterion=criterion)
@@ -40,11 +44,9 @@ for file in selected_files:
         objects[f].plot(i, peaks=True, width=True)
 
 
-
         results.append(
             {
                 'species': i,
-                'oxygen': el.extract_string(f, 'Ox', ' '),
                 'no. of peaks': len(objects[f].peaks[i]),
                 f'peak width ({criterion}% criterion)': objects[f].peaks[i]['width'].mean() * 1e6,
                 'peak width stdev': objects[f].peaks[i]['width'].std() * 1e6,
@@ -58,10 +60,14 @@ for file in selected_files:
 
 
 results = pd.DataFrame(results)
+ratio = results[results["species"] == "EuO"]["peak area"].mean() / results[results["species"] == "Eu"]["peak area"].mean()
+print(ratio)
+
+
 #results = results.apply(pd.to_numeric, errors='ignore')
 #results = results.dropna(axis=1, how='all')
 #results = results.fillna(0)
-results.to_excel('output.xlsx')
+#results.to_excel('output.xlsx')
 print(results)
 
 el.SinglePulse.fig.show_dash()
