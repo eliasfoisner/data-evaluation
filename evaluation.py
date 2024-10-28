@@ -25,6 +25,7 @@ mpl.rcParams['figure.labelsize'] = 14
 selected_files = askopenfilenames(title="Wähle .csv Files zum Bearbeiten aus", filetypes=[("CSV Files", "*.csv")])
 objects = dict()
 results = []
+ratios = []
 
 for file in selected_files:
     f = os.path.basename(file)
@@ -32,17 +33,16 @@ for file in selected_files:
     isotopes = objects[f].measured_isotopes.tolist()
 
     for i in isotopes:
-        criterion, threshold = 10, 100
-        if i == "Eu":
-            criterion, threshold = 10, 150
-        if i == "EuO":
+        if i == "Eu/153":
             criterion, threshold = 10, 40
+        if i == "EuO/169":
+            criterion, threshold = 1, 5
         objects[f].timescale(i, cycle_time=50e-6)
-        objects[f].peak_finding(i, threshold=threshold, distance=5e-3)
+        objects[f].savgol(i)
+        objects[f].peak_finding(i, threshold=threshold, distance=100e-3)
         objects[f].peak_width(i, criterion=criterion)
         objects[f].peak_area(i, resize=1.5)
-        objects[f].plot(i, peaks=True, width=True)
-
+        objects[f].plot(i, peaks=True, integration=True)
 
         results.append(
             {
@@ -58,9 +58,17 @@ for file in selected_files:
         )
         print(f"Done: {f}")
 
+    #ratios.append(objects[f].area_ratio("Eu/153", "EuO/169"))
+
+#ratios = pd.concat(ratios)
+#ratios = ratios.reset_index(drop=True).squeeze()
+#print(ratios.mean(), ratios.std())
 
 results = pd.DataFrame(results)
-ratio = results[results["species"] == "EuO"]["peak area"].mean() / results[results["species"] == "Eu"]["peak area"].mean()
+area_euo = results[results["species"] == "EuO/169"]["peak area"].mean()
+area_eu = results[results["species"] == "Eu/153"]["peak area"].mean()
+ratio = area_euo / (area_euo + area_eu)
+print(results)
 print(ratio)
 
 
@@ -68,6 +76,6 @@ print(ratio)
 #results = results.dropna(axis=1, how='all')
 #results = results.fillna(0)
 #results.to_excel('output.xlsx')
-print(results)
+#print(results)
 
 el.SinglePulse.fig.show_dash()

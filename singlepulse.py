@@ -70,8 +70,12 @@ class SinglePulse:
         self.__nanomodul = check_nanomodul(file_path)
 
         if not self.__nanomodul:
-            self.data = pd.read_csv(file_path, skiprows=2)
-            self.measured_isotopes = self.data.loc[:, self.data.columns != "Time in Seconds "].columns
+            try:
+                self.data = pd.read_csv(file_path, skiprows=1)
+                self.measured_isotopes = self.data.loc[:, self.data.columns != "Time in Seconds "].columns
+            except:
+                self.data = pd.read_csv(file_path, skiprows=2)
+                self.measured_isotopes = self.data.loc[:, self.data.columns != "Time in Seconds "].columns
         else:
             self.data = pd.read_csv(file_path, skiprows=0).iloc[:, :-1]
             self.measured_isotopes = self.data.columns
@@ -249,6 +253,27 @@ class SinglePulse:
         """
         self.peaks[isotope]['mass'] = (self.peaks[isotope]['area'] - calibration.calibration[isotope].intercept) / calibration.calibration[isotope].slope
 
+    def area_ratio(self, isotope_one: str, isotope_two: str):
+        """
+        Calculate the area ratio between two isotopes - for every particle separately. 
+        This is achieved by looking at every peak of the large area isotope and checking if there was an adjacent smaller area peak found. 
+        If yes, the ratio is calculated and stored in self.__ratios. 
+        :param isotope_one: The isotope with the supposed larger area.
+        :param isotope_two: The isotope with the smaller area.
+        :return: Ratio between the two areas as float.
+        """
+        ratios = []
+        for i_one in range(len(self.peaks[isotope_one])):
+            for i_two in range(len(self.peaks[isotope_two])):
+                if abs(self.peaks[isotope_one]["time"][i_one] - self.peaks[isotope_two]["time"][i_two]) < 5e-3:
+                    area_one = self.peaks[isotope_one]["area"][i_one]
+                    area_two = self.peaks[isotope_two]["area"][i_two]
+                    ratio = area_two / (area_one + area_two)
+                    ratios.append(ratio)
+        return pd.Series(ratios)
+
+
+
     def gdc_diameter(self, isotope, mode):
         # mass fractions of one particle
         #gadolinium = 0.17997880
@@ -342,6 +367,7 @@ class SinglePulse:
         for shape in shapes:
             SinglePulse.fig.add_shape(shape)
 
+
 class FilmCalibration:
     """
     Uses SinglePulse Objects for calibration.
@@ -376,10 +402,6 @@ class FilmCalibration:
     def reg_plot(self, isotope: str, confidence_interval: int = 90):
         sns.regplot(x=self.analyte_mass[isotope], y=self.analyte_intensity[isotope], ci=confidence_interval)
         plt.show()
-
-class Imaging:
-    pass
-
 
 
 
