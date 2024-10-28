@@ -370,12 +370,11 @@ class SinglePulse:
 
 class FilmCalibration:
     """
-    Uses SinglePulse Objects for calibration.
+    Uses SinglePulse Objects for calibration. Spotsizes: x and y in micrometers, z in nanometers.
     """
-    def __init__(self, standards: list, spotsizes: list[tuple], film_nm: float, film_concentration_percent: float):
+    def __init__(self, standards: list, spotsizes: list[tuple], film_concentration_percent: float):
         self.__standards = standards
         self.__spotsizes = spotsizes
-        self.__film_nm = film_nm
         self.__film_concentration_percent = film_concentration_percent
         self.calibration = dict()
         self.analyte_mass = dict()
@@ -387,8 +386,8 @@ class FilmCalibration:
         if force_zero:
             self.analyte_mass[isotope].append(0)
             self.analyte_intensity[isotope].append(0)
-        for a, b in self.__spotsizes:
-            ablated_drymass = (self.__film_nm * 1e-7 * a * b * 1e-8) * (self.__film_concentration_percent / 100)
+        for x, y, z in self.__spotsizes:
+            ablated_drymass = (z * 1e-7 * x * y * 1e-8) * (self.__film_concentration_percent / 100)
             if analyte_ppm_film != 0:
                 ablated_drymass = ablated_drymass * analyte_ppm_film * 1e-6
             self.analyte_mass[isotope].append(ablated_drymass*mass_correction)
