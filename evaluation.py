@@ -33,6 +33,7 @@ for file in selected_files:
     isotopes = objects[f].measured_isotopes.tolist()
 
     for i in isotopes:
+        criterion, threshold = 10, 50
         if i == "Eu/153":
             criterion, threshold = 10, 40
         if i == "EuO/169":
@@ -65,11 +66,11 @@ for file in selected_files:
 #print(ratios.mean(), ratios.std())
 
 results = pd.DataFrame(results)
-area_euo = results[results["species"] == "EuO/169"]["peak area"].mean()
-area_eu = results[results["species"] == "Eu/153"]["peak area"].mean()
-ratio = area_euo / (area_euo + area_eu)
+#area_euo = results[results["species"] == "EuO/169"]["peak area"].mean()
+#area_eu = results[results["species"] == "Eu/153"]["peak area"].mean()
+#ratio = area_euo / (area_euo + area_eu)
 print(results)
-print(ratio)
+#print(ratio)
 
 
 #results = results.apply(pd.to_numeric, errors='ignore')
